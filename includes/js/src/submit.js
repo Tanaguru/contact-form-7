@@ -69,6 +69,15 @@ export default function submit( form, options = {} ) {
 		}
 
 		if ( 'mail_sent' === response.status ) {
+
+			/**
+			 * #cf7-tng-start
+			 *
+			 * Move focus on confirmation message after submit and before reset
+			 */
+			form.querySelector( '.wpcf7-response-output' ).focus();
+			/** #cf7-tng-end */
+
 			form.reset();
 			form.wpcf7.resetOnMailSent = true;
 		}
@@ -79,13 +88,35 @@ export default function submit( form, options = {} ) {
 			} );
 		}
 
-		form.wpcf7.parent.querySelector(
-			'.screen-reader-response [role="status"]'
-		).insertAdjacentText( 'beforeend', response.message );
+		/**
+		 * #cf7-tng-start
+		 *
+		 * .screen-reader-response does not exist anymore.
+		 * See contact-form.php, function screen_reader_response.
+		 */
+
+		// form.wpcf7.parent.querySelector(
+		// 	'.screen-reader-response [role="status"]'
+		// ).insertAdjacentText( 'beforeend', response.message );
+
+		/** #cf7-tng-end */
+
+
+		/**
+		 * #cf7-tng-start
+		 *
+		 * - Put the message into a HTML paragraph
+		 * - Move focus on every type of message after submit (error, warning)
+		 */
 
 		form.querySelectorAll( '.wpcf7-response-output' ).forEach( div => {
-			div.innerText = response.message;
+			var paragraph = document.createElement( 'p' );
+			paragraph.textContent = response.message;
+			div.appendChild( paragraph );
+			div.focus();
 		} );
+
+		/** #cf7-tng-end */
 
 	} ).catch( error => console.error( error ) );
 }
@@ -109,9 +140,20 @@ export const clearResponse = form => {
 		}
 	} );
 
-	form.wpcf7.parent.querySelector(
-		'.screen-reader-response [role="status"]'
-	).innerText = '';
+	/**
+	 *? #cf7-tng-start
+	 *
+	 * .screen-reader-response does not exist anymore.
+	 * See contact-form.php, function screen_reader_response.
+	 */
+
+	// form.wpcf7.parent.querySelector(
+	// 	'.screen-reader-response [role="status"]'
+	// ).innerText = '';
+
+	/**
+	 * ? #cf7-tng-end
+	 */
 
 	form.querySelectorAll( '.wpcf7-response-output' ).forEach( div => {
 		div.innerText = '';

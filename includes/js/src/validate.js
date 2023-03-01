@@ -147,9 +147,18 @@ export const setValidationError = ( form, fieldName, message, options ) => {
 			);
 		}
 
-		form.wpcf7.parent.querySelector(
-			'.screen-reader-response ul'
-		).appendChild( li );
+		/**
+		 * #cf7-tng-start
+		 *
+		 * .screen-reader-response does not exist anymore.
+		 * See contact-form.php, function screen_reader_response.
+		 */
+
+		// form.wpcf7.parent.querySelector(
+		// 	'.screen-reader-response ul'
+		// ).appendChild( li );
+
+		/** #cf7-tng-end */
 	};
 
 	const setVisualValidationError = () => {
@@ -165,7 +174,23 @@ export const setValidationError = ( form, fieldName, message, options ) => {
 
 			const tip = document.createElement( 'span' );
 			tip.classList.add( 'wpcf7-not-valid-tip' );
-			tip.setAttribute( 'aria-hidden', 'true' );
+
+			/**
+			 *? #cf7-tng-start
+			 *
+			 * - Comment `aria-hidden="true"` from the span element.
+			 * - Create errorID for random unique ID, and attach errorID to the error message.
+			 */
+
+			let errorID = 'cf7-tng-error-' + Math.random().toString(36).substr(2, 9);
+
+			// tip.setAttribute( 'aria-hidden', 'true' );
+			tip.setAttribute( 'id', errorID );
+
+			/**
+			 *? #cf7-tng-end
+			 */
+
 			tip.insertAdjacentText( 'beforeend', message );
 			wrap.appendChild( tip );
 
@@ -176,6 +201,25 @@ export const setValidationError = ( form, fieldName, message, options ) => {
 			wrap.querySelectorAll( '.wpcf7-form-control' ).forEach( control => {
 				control.classList.add( 'wpcf7-not-valid' );
 				control.setAttribute( 'aria-describedby', errorId );
+
+				/**
+				 *? #cf7-tng-start
+				 *
+				 * - Retrieve unique ID from error message and add `aria-describedby` to its field
+				 * - For `input[type="file"]`, handle it with `aria-labelledby` instead of `aria-describedby` because of a Firefox + NVDA bug
+				 * - Delete attribute aria-describedby for `input[type="file"]`
+				 */
+
+				if ( control.type == 'file' ) {
+					control.setAttribute( 'aria-labelledby', control.getAttribute( 'aria-labelledby' ) + ' ' + errorID );
+					control.removeAttribute( 'aria-describedby' );
+				} else {
+					control.setAttribute( 'aria-describedby', errorID );
+				}
+
+				/**
+				 *?  #cf7-tng-end
+				 */
 
 				if ( typeof control.setCustomValidity === 'function' ) {
 					control.setCustomValidity( message );
@@ -203,9 +247,20 @@ export const removeValidationError = ( form, fieldName ) => {
 	const errorId = `${ form.wpcf7?.unitTag }-ve-${ fieldName }`
 		.replaceAll( /[^0-9a-z_-]+/ig, '' );
 
-	form.wpcf7.parent.querySelector(
-		`.screen-reader-response ul li#${ errorId }`
-	)?.remove();
+	/**
+	 *? #cf7-tng-start
+	 *
+	 * .screen-reader-response does not exist anymore.
+	 * See contact-form.php, function screen_reader_response.
+	 */
+
+	// form.wpcf7.parent.querySelector(
+	// 	`.screen-reader-response ul li#${ errorId }`
+	// )?.remove();
+
+	/**
+	 * ? #cf7-tng-end
+	 */
 
 	form.querySelectorAll(
 		`.wpcf7-form-control-wrap[data-name="${ fieldName }"]`
@@ -214,6 +269,26 @@ export const removeValidationError = ( form, fieldName ) => {
 
 		wrap.querySelectorAll( '[aria-invalid]' ).forEach( elm => {
 			elm.setAttribute( 'aria-invalid', 'false' );
+
+			/**
+			 *? #cf7-tng-start
+			 *
+			 * Remove the error message ID from the `aria-labelledby` attribute for `input[type="file"]`
+			 */
+
+			if( elm.getAttribute( 'type' ) == 'file' ) {
+				let IDs = elm.getAttribute( 'aria-labelledby' );
+				IDs = IDs.split( ' ' );
+				IDs = IDs.filter( function ( ID ) {
+					return !/^cf7-tng-error-*/.test( ID );
+				});
+
+				elm.setAttribute( 'aria-labelledby', IDs.join( ' ' ) );
+			}
+
+			/**
+			 *? #cf7-tng-end
+			 */
 		} );
 
 		wrap.querySelectorAll( '.wpcf7-form-control' ).forEach( control => {

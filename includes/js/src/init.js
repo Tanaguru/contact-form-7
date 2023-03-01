@@ -11,6 +11,7 @@ import {
 } from './helpers';
 
 export default function init( form ) {
+
 	const formData = new FormData( form );
 
 	form.wpcf7 = {
@@ -30,6 +31,38 @@ export default function init( form ) {
 			'<span class="wpcf7-spinner"></span>'
 		);
 	} );
+
+	/**
+	 * #cf7-tng-start
+	 *
+	 * For `input[type="file"]` fields, because of a bug with Firefox and the NVDA Screen reader:
+	 * - add a unique ID on the `<label>`;
+	 * - link the `<label>` to the fields thanks to an `aria-labelledby` attribute.
+	 *
+	 * Explanation: `aria-describedby` is not supported on this type of field with Firefox. And so, `aria-labelledby` will be used for the error message. So, we need to link the `<label>` with this attribute too so that it will not be erased.
+	 */
+
+	form.querySelectorAll( '.wpcf7-file' ).forEach( field => {
+
+		if( !field.getAttribute( 'aria-labelledby' ) && field.getAttribute( 'id' ) ) {
+
+			var labelArray = form.querySelectorAll( 'label[for="' + field.getAttribute( 'id' ) + '"]' );
+
+			if( labelArray.length == 1 ) {
+				var label = labelArray[0];
+				var ID = label.id;
+
+				if ( !ID ) {
+					ID = 'cf7-tng-label-' + Math.random().toString(36).substr(2, 9);
+					label.setAttribute( 'id', ID );
+				}
+
+				field.setAttribute( 'aria-labelledby', label.id );
+			}
+		}
+	});
+
+	/** #cf7-tng-end */
 
 	exclusiveCheckboxHelper( form );
 	freeTextHelper( form );
